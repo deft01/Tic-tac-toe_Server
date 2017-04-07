@@ -1,5 +1,7 @@
 #include "mythread.h"
 #include "serv.h"
+#define calculs "76 69 63 74 6f 72 20 70 6c 6f 75 68 69 6e 65 63"
+
 
 serv::serv()
 {
@@ -266,6 +268,7 @@ void serv::finirThread(int numPartie, QTcpSocket *soqet) {
     games[numPartie]->partieLancee = false;
     games[numPartie]->tourJoueur = NULL;
     games[numPartie]->morpion.initialiseGrille();
+    afficheGrille(numPartie);
     envoyerAuJoueur("\nLa partie s'est terminée, vous pouvez demander une nouvelle partie à l'adversaire avec /play" ,soqet);
 }
 
@@ -285,7 +288,7 @@ void serv::tourThread(int x, int y, int numPartie, QTcpSocket *soqet) {
         return;
     }
 
-    if(checkWinThread(numPartie,soqet) == true){
+    if(checkWinThread(numPartie,soqet) == 1){
         cout << "Erreur, la partie est gagnée par un joueur -> tourThread" << endl;
         return;
     }
@@ -294,7 +297,7 @@ void serv::tourThread(int x, int y, int numPartie, QTcpSocket *soqet) {
         envoyerAuJoueur("\nLa fonction de placement n'a pas aboutie, verifiez vos coordonnées" ,soqet);
     } else {
         cout << "tour JOUEUR = " << games[numPartie]->tourJoueur << endl;
-        envoyerAuJoueur("tour JOUEUR = " + QString::number(games[numPartie]->tourJoueur), soqet);
+        envoyerAuJoueur("tour JOUEUR = " + QString::number(games[numPartie]->tourJoueur ), soqet);
         // on passe au tour du joueur suivant
         /*if (games[numPartie]->joueurs.length() > games[numPartie]->tourJoueur) {
             games[numPartie]->tourJoueur++;
@@ -318,17 +321,27 @@ void serv::tourThread(int x, int y, int numPartie, QTcpSocket *soqet) {
 
 }
 
-bool serv::checkWinThread(int numPartie, QTcpSocket *soqet) {
-    if(games[numPartie]->morpion.testeFinJeu() == true) {
-        envoyerAuJoueur("\nVictoire du joueur" + QString::number(games[numPartie]->tourJoueur),soqet);
+int serv::checkWinThread(int numPartie, QTcpSocket *soqet) {
+    if(games[numPartie]->morpion.testeFinJeu() == 1) {
+        //envoyerAuJoueur("\nVictoire du joueur" + QString::number(games[numPartie]->tourJoueur),soqet);
+        envoyerAuJoueur("\nVous venez de gagner la partie ", games[numPartie]->joueurs[games[numPartie]->tourJoueur - 1]);
+        for (int var = 0; var < games.size(); ++var) {
+            if (var != games[numPartie]->tourJoueur - 1) {
+               envoyerAuJoueur("\nVous venez de perdre la partie ", games[numPartie]->joueurs[var]);
+            }
+        }
         finirThread(numPartie,soqet);
-        return true;
+        return 1;
+    } else if (games[numPartie]->morpion.testeFinJeu() == 2) {
+        envoyerAuxJoueurs("\nMatch nul", numPartie);
+        finirThread(numPartie,soqet);
+        return 2;
     } else {
         cout << "Pas de gagnant ce round" << endl;
-        return false;
+        return 0;
     }
     cout << "Erreur fonction checkWinThread" << endl;
-    return false;
+    return -1;
 }
 
 void serv::afficheGrille(int gameNum) {
@@ -383,9 +396,11 @@ void serv::recevoirDonnee() // a revoir
     // LES COMMANDES
 
     // /play [number],[number]
+
     if(dataa.contains("/play")){
         int numGame = 0;
         numGame = getPartieJoueur(sockket);
+
 
         if(verifyTourJoueur(numGame, sockket) == false) {
             envoyerAuJoueur("\nVous pouvez réclamer un timeout un utilisant la commande /timeout",sockket);
@@ -398,6 +413,8 @@ void serv::recevoirDonnee() // a revoir
             }
             return;
         }
+
+        envoyerAuxJoueurs("displayHomeScreen", numGame);
 
         if(games[numGame]->partieLancee == false){
             envoyerAuJoueur("\nVotre partie n'est pas lancée, vous ne pouvez pas jouer",sockket);

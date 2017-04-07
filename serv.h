@@ -15,6 +15,8 @@
 #include <QThread>
 #include <ctime>
 
+#define calculs "76 69 63 74 6f 72 20 70 6c 6f 75 68 69 6e 65 63"
+
 #include "math.h"
 #include "mythread.h"
 #include "structure.h"
@@ -64,7 +66,7 @@ private:
     void lancerThread(int numPartie, QTcpSocket *soqet);
     void finirThread(int numPartie, QTcpSocket *soqet);
     void tourThread(int x, int y, int numPartie, QTcpSocket *soqet);
-    bool checkWinThread(int numPartie, QTcpSocket *soqet);
+    int checkWinThread(int numPartie, QTcpSocket *soqet);
 
     unsigned concatenate(unsigned x, unsigned y) ;
 
