@@ -167,6 +167,7 @@ int MyThread::testeFinJeu() {
         return 1;
 
     } else {
+        /* teste si la grille n'est pas pleine */
         for (i=0; i<3; i++) {
             for (j=0; j<3; j++) {
                 if (grille[i][j] != VIDE){

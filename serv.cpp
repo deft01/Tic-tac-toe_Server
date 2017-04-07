@@ -124,10 +124,11 @@ bool serv::verifyTourJoueur(int gameNum, QTcpSocket *soqet) {
     for (int var = 1; var <= games[gameNum]->joueurs.length(); ++var) {
         if (games[gameNum]->joueurs[var - 1] == soqet) {
             if (var == games[gameNum]->tourJoueur) {
+                envoyerAuJoueur("\nvotre tour" ,soqet);
                 cout << "C'est bien au tour de ce joueur de jouer" << endl;
                 return true;
             } else {
-                envoyerAuJoueur("\nCe n'est pas à votre tour de jouer" ,soqet);
+                envoyerAuJoueur("\npas tour" ,soqet);
                 return false;
             }
         }
@@ -298,6 +299,7 @@ void serv::tourThread(int x, int y, int numPartie, QTcpSocket *soqet) {
     } else {
         cout << "tour JOUEUR = " << games[numPartie]->tourJoueur << endl;
         envoyerAuJoueur("tour JOUEUR = " + QString::number(games[numPartie]->tourJoueur ), soqet);
+        //envoyerAuJoueur("votre tour",games[numPartie]->joueurs[tourJoueur]);
         // on passe au tour du joueur suivant
         /*if (games[numPartie]->joueurs.length() > games[numPartie]->tourJoueur) {
             games[numPartie]->tourJoueur++;
@@ -458,8 +460,10 @@ void serv::recevoirDonnee() // a revoir
     // /start
     if(dataa.contains("/start")){
         int numGame = 0;
-        numGame = getPartieJoueur(sockket);
+        numGame = getPartieJoueur(sockket);        
         envoyerAuJoueur("\nVous pouvez réclamer un timeout un utilisant la commande /timeout",sockket);
+        verifyTourJoueur(numGame, sockket);
+
 
         if(numGame < 0 ){
             cout << "erreur dans /play -> get partie du joueur" << endl;
